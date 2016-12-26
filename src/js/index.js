@@ -1,7 +1,12 @@
 import {createStore} from 'redux';
 import React, {Component} from 'react';
 import ReactDom from 'react-dom';
-import {combineReducers} from 'redux';
+
+import AddToDo from './Containers/AddToDo.js';
+import ToDoList from './Containers/ToDoList.js';
+import Footer from './Containers/Footer.js';
+import rootReducer from './Reducers/RootReducer.js';
+
 //不是纯函数
 // function add(arr, ele) {
 //     arr.push(ele);
@@ -115,125 +120,40 @@ import {combineReducers} from 'redux';
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-let gid = 0;
-const toDoReducer = (state = [], action) => {
-    switch (action.type) {
-        case 'ADD_TOOD':
-            let newState = [...state];
-            newState.push({
-                text: action.text,
-                id: gid++,
-                completed: false
-            })
-        return newState;
-        case 'TOUCH_TOOD':
-            let newState2 = state.map((ele, index) => {
-                if(ele.id === action.id) {
-                    return Object.assign({}, ele, {completed: !ele.completed});
-                }
-                return ele;
-            });
-         return newState2;
-         default:
-            return state;
-    }
-}
-const filterReducer = (state = 'SHOW_ALL', action) => {
-    switch (action.type) {
-        case 'TOUCH_FILTER': 
-            return action.filter;
-        default:
-            return state;
-    }
-}
-const rootReducer = combineReducers({
-    toDoArr: toDoReducer,
-    filterText: filterReducer
-});
 let store = createStore(rootReducer);
-const filterToDoList = (toDoArr, filterText) => {
-    switch (filterText) {
-        case 'SHOW_COMPLETE':
-            return toDoArr.filter((ele, index) => {
-               return !ele.completed;
-            })
-         case 'SHOW_ACTIVE':
-            return toDoArr.filter((ele, index) => {
-                return ele.completed;
-            })
-         default:
-            return toDoArr;
-    }
-}
+
 class App extends Component {
     render () {
-        let {toDoArr, filterText} = store.getState();
-        // let toDoArr = store.getState();
-        // let filterText = store.getState();
-        toDoArr = filterToDoList(toDoArr, filterText);
         return (
             <div>
-                <input type="text" ref='inp'/>
-                <button onClick={ () => {
-                    store.dispatch({
-                        type: 'ADD_TOOD',
-                        text: this.refs.inp.value
-                    })
-                }}>ADD</button>
-                <ul>
-                {
-                    toDoArr.map( (ele, index) => {
-                        return <li style={{textDecoration : ele.completed ? 'line-through' : 'none'}} onClick={() => {store.dispatch({
-                            type: 'TOUCH_TOOD',
-                            id: ele.id
-                        })}} key={ele.id}>{ele.text}</li>
-                    })
-                }   
-                </ul>
-                <div>
-                    <a href="#" onClick={()=>{
-                        store.dispatch({
-                            type: 'TOUCH_FILTER',
-                            filter: 'SHOW_ALL'
-                        })
-                    }}>SHOW_ALL</a>
-                    <a href="#" onClick={()=>{
-                        store.dispatch({
-                            type: 'TOUCH_FILTER',
-                            filter: 'SHOW_COMPLETE'
-                        })
-                    }}>SHOW_COMPLETE</a>
-                    <a href="#" onClick={()=>{
-                        store.dispatch({
-                            type: 'TOUCH_FILTER',
-                            filter: 'SHOW_ACTIVE'
-                        })
-                    }}>SHOW_ACTIVE</a>
-                </div>
+               <AddToDo></AddToDo>
+               <ToDoList></ToDoList>
+               <Footer></Footer>
             </div>
         )
     }
 }
+class Provider extends Component {
+    getChildContext() {
+        return {store: store};
+    }
+    render () {
+        return this.props.children;
+    }
+}
+Provider.childContextTypes = {
+    store: React.PropTypes.object
+};
 const render = () => {
     ReactDom.render(
-        <App></App>,
+        <Provider>
+            <App></App>
+        </Provider>,
         document.getElementById('root')
     )
 }
 render();
-store.subscribe(render);
+// store.subscribe(render);
 
 
 
